@@ -22,7 +22,9 @@ def get_user_data(chat_id: int) -> (UserData | None):
     else:
         return UserData(
             chat_id=int(data[0]),
-            need_translation=bool(int(data[1].replace('-', '0').replace('+', '1')))
+            need_translation=bool(int(data[1].replace('-', '0').replace('+', '1'))),
+            requests_value=int(data[2]),
+            context=data[3]
         )
 
 

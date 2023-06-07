@@ -64,15 +64,17 @@ async def clear_handler(message: types.Message):
 @dp.message_handler()
 async def handle_requests(message: types.Message):
     user_data = db.get_user_data(message.chat.id)
-    if user_data.requests_before_pay == 4:
-        return
-    elif user_data.requests_before_pay == 0:
-        return
-    db.update_requests_before_pay(message.chat.id, user_data.requests_before_pay - 1)
-    context = db.get_request_context(message.chat.id)
+    if user_data.requests_value == 4:
+        return  # Тут код поста заказчика
+    elif user_data.requests_value == 0:
+        return  # Тут код оплаты заказчика
+    db.update_requests_before_pay(message.chat.id, user_data.requests_value - 1)
     loop = asyncio.get_event_loop()
-    answer = await loop.run_in_executor(None, gpt.get_answer, context)
+    user_data.context += f"User: {message}\n"
+    answer = await loop.run_in_executor(None, gpt.get_answer, user_data.context)
+    user_data.context += f'Bot: {answer}'
     await message.answer(answer)
+    db.update_request_context(user_data.chat_id, user_data.context)
 
 
 executor.start_polling(dp, skip_updates=True)

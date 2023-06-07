@@ -2,12 +2,13 @@ import openai
 import secure_data
 
 
-def get_answer(messages: list):
+def get_answer(messages):
     try:
         openai.api_key = secure_data.OPENAI_API_KEY
-        response = openai.ChatCompletion.create(
+        response = openai.Completion.create(
             model="gpt-3.5-turbo",
-            messages=messages
+            prompt=messages,
+
         )
         if response['choices'][0]['message']['content'].count('?') > 1:
             return get_answer(messages)
