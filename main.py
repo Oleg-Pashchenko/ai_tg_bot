@@ -17,13 +17,13 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
     db.init_user(message.chat.id)
-    await message.answer(message.text)
+    await message.answer("Тут приветственное сообщение от заказчика")
 
 
 @dp.message_handler(commands=['help'])
 async def help_handler(message: types.Message):
     await message.answer(
-        "Тех поддержка Бота t.me/cursor_tech.\nЕсли бот перестал отвечать, просто очистите историю через *Меню* и продублируйте вопрос.")
+        "Тех поддержка Бота (тг заказчика).\nЕсли бот перестал отвечать, просто очистите историю через *Меню* и продублируйте вопрос.")
 
 
 @dp.message_handler(commands=['settings'])
@@ -61,13 +61,18 @@ async def clear_handler(message: types.Message):
     await message.answer('История очищена')
 
 
+
+
 @dp.message_handler()
 async def handle_requests(message: types.Message):
     user_data = db.get_user_data(message.chat.id)
+
     if user_data.requests_value == 4:
-        return  # Тут код поста заказчика
+        d = await bot.get_chat_member(chat_id=-1001844149356, user_id=message.from_user.id)
+        if d['status'] == 'left':
+            return await message.answer("Пожалуйста, подпишитесь на канал такой-то")  # Тут код поста заказчика
     elif user_data.requests_value == 0:
-        return  # Тут код оплаты заказчика
+        return await message.answer("Пожалуйста, оплатите подписку")  # Тут код оплаты заказчика
     db.update_requests_before_pay(message.chat.id, user_data.requests_value - 1)
     loop = asyncio.get_event_loop()
     user_data.context += f"User: {message}\n"
@@ -75,6 +80,7 @@ async def handle_requests(message: types.Message):
     user_data.context += f'Bot: {answer}'
     await message.answer(answer)
     db.update_request_context(user_data.chat_id, user_data.context)
+    db.update_requests_before_pay(user_data.chat_id, user_data.requests_value - 1)
 
 
 executor.start_polling(dp, skip_updates=True)
